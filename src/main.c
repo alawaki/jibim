@@ -109,24 +109,39 @@ Command get_command(Option o){
     return COMMAND_SUMMARY;
 }
 
-int record_expense(Option o){
+int append(char* amount_value, char* tag_value, double mul){
+    Date date;
     double amount;  
 
-    if (convert_str_to_double(o.expense_value, &amount) != SUCCESS){
+    get_date(&date);
+
+
+
+    if (convert_str_to_double(amount_value, &amount) != SUCCESS){
         return ERROR;
     }
-    Date date;
-    get_date(&date);
+    
+    if(amount <= 0.0){
+        printf("Amount[%.2lf] can not be less than zero!\n", amount);
+        return ERROR;
+    }
 
     FILE* f = fopen("journal.tsv", "a");
     if ( f != NULL){
-        fprintf(f, "%s\t%.2lf\t%s\n", date, amount, o.tag_value);
+        fprintf(f, "%s\t%.2lf\t%s\n", date, mul * amount, tag_value);
         fclose(f);
     }
 
     return SUCCESS;
 }
 
+int record_expense(Option o){
+    return append(o.expense_value, o.tag_value, -1.0);
+}
+
+int record_income(Option o){
+    return append(o.income_value, o.tag_value, 1.0);
+}
 
 int main(int argc, char** argv){
     Option o;
@@ -141,9 +156,10 @@ int main(int argc, char** argv){
         case COMMAND_UNKNOWN:
             print_usage();
             return ERROR;
-
         case COMMAND_EXPENSE:
             return record_expense(o);
+        case COMMAND_INCOME:
+            return record_income(o);
             
     } 
     
