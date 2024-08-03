@@ -5,18 +5,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-const int MAX_JOURNAL_COUNT = 100;
-
-#define MAX_DATE_SIZE 10
-#define MAX_TAG_SIZE  80
-#define MAX_AMOUNT_SIZE 10
-
-#define ERROR 1
-#define SUCCESS 0
-
-typedef char Date[MAX_DATE_SIZE + 1];
-typedef char Tag[MAX_TAG_SIZE + 1];
-typedef char Amount[MAX_AMOUNT_SIZE + 1];
+#include "common.h"
+#include "utils.h"
 
 typedef enum {
     COMMAND_UNKNOWN,
@@ -25,11 +15,6 @@ typedef enum {
     COMMAND_SUMMARY
 } Command;
 
-typedef struct{
-    Date date;
-    double amount;
-    Tag tag;
-} Journal;
 
 
 typedef struct {
@@ -41,22 +26,7 @@ typedef struct {
     Tag tag_value;
 } Option;
 
-int convert_str_to_double(char* value, double* out){
-    char* end_ptr;
-    *out = strtod(value, &end_ptr);
-    if(*end_ptr == 0){
-        return SUCCESS;
-    }else {
-        printf("Can not convert [%s] to amount! \n", value);
-        return ERROR;
-    }
-}
 
-void get_date(Date* out) {
-    time_t t = time(NULL);
-    struct tm *tm_info = localtime(&t);
-    strftime(*out, 11, "%Y.%m.%d", tm_info);
-}
 
 
 void print_usage() {
@@ -68,8 +38,11 @@ void print_usage() {
 
 int get_args(int argc, char** argv, Option* o) {
     int opt;
+    o->income_flag = 0;
+    o->expense_flag = 0;
+    o->tag_flag = 0;
     do {
-        opt = getopt(argc, argv, "i:t:e:");
+        opt = getopt(argc, argv, "i:t:e:s:");
         switch(opt) {
             case 'i':
                 o->income_flag = 1;
@@ -143,8 +116,34 @@ int record_income(Option o){
     return append(o.income_value, o.tag_value, 1.0);
 }
 
+int print_summary(Option o){
+    Journal row;
+    double sum = 0;
+    int max_rows_to_print = 5;
+
+    FILE* f = fopen("journal.tsv", "r");
+    if ( f == NULL){
+        printf("Nothing to summrize!\n");
+        return ERROR;
+    }
+    
+    while(fscanf(f, "%s\t%lf\t%s", row.date, &row.amount, row.tag) == 3){
+        sum = sum + row.amount;
+        max_rows_to_print--;
+        if(max_rows_to_print >= 0){
+            debug_journal(row);       
+        } 
+    }
+    fclose(f);
+    printf("--------------------\n");
+    printf("Current:\n\t%.2lf$\n", sum);
+    return SUCCESS;
+}
+
 int main(int argc, char** argv){
     Option o;
+    Journal j;
+
     int result;
     result = get_args(argc, argv, &o);
     if (result != 0){
@@ -160,7 +159,8 @@ int main(int argc, char** argv){
             return record_expense(o);
         case COMMAND_INCOME:
             return record_income(o);
-            
+        case COMMAND_SUMMARY:
+            return print_summary(o);
     } 
     
     return SUCCESS;
