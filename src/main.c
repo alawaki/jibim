@@ -243,7 +243,7 @@ int main(int argc, char** argv){
             return record_income(o);
         case COMMAND_SUMMARY:
             return print_summary(o);
-            //return today_expenses(o);
+      
     } 
     return SUCCESS;
 }
