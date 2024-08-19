@@ -21,20 +21,16 @@ typedef struct {
     int expense_flag;
     int income_flag;
     int tag_flag;
-    Amount income_value;
-    Amount expense_value;
-    Tag tag_value;
+    AmountStr income_value;
+    AmountStr expense_value;
+    TagStr tag_value;
 } Option;
-
-
-
 
 void print_usage() {
     printf("Usage:\n");
     printf(" - To record expense: jibim -e [amount] -t [tag]\n");
     printf(" - To record income: jibim -i [amount] -t [tag]\n");
 }
-
 
 int get_args(int argc, char** argv, Option* o) {
     int opt;
@@ -83,14 +79,12 @@ Command get_command(Option o){
 }
 
 int append(char* amount_value, char* tag_value, double mul){
-    Date date;
+    Date dt;
     double amount;  
 
-    get_date(&date);
+    date_now(&dt);
 
-
-
-    if (convert_str_to_double(amount_value, &amount) != SUCCESS){
+    if (!amount_from_str(amount_value, &amount)){
         return ERROR;
     }
     
@@ -101,7 +95,7 @@ int append(char* amount_value, char* tag_value, double mul){
 
     FILE* f = fopen("journal.tsv", "a");
     if ( f != NULL){
-        fprintf(f, "%s\t%.2lf\t%s\n", date, mul * amount, tag_value);
+        fprintf(f, "%04d.%02d.%02d\t%.2lf\t%s\n", dt.year, dt.month, dt.day, mul * amount, tag_value);
         fclose(f);
     }
 
@@ -116,9 +110,91 @@ int record_income(Option o){
     return append(o.income_value, o.tag_value, 1.0);
 }
 
+int today_expenses(Option o){
+    Journal row;
+    Date date_today;
+    DateStr date;
+    double sum =0;
+
+    date_now(&date_today);
+
+    FILE* f = fopen("journal.tsv", "r");
+    if ( f == NULL){
+        printf("Nothing to summrize!\n");
+        return ERROR;
+    }
+
+    while(fscanf(f, "%s\t%lf\t%s", date, &row.amount, row.tag) == 3){        
+        date_from_str(date, &row.date);
+        if (date_eq(row.date, date_today) == true){
+            if(row.amount < 0 || row.amount > 0){
+                debug_journal(row);
+                sum = sum + row.amount;
+            }
+        }
+    }
+
+    fclose(f);
+
+    printf("--------------------\n");
+    printf("Todays expenses:\t%.2lf$\n", sum);
+    printf("--------------------\n");
+    printf("\n");
+    
+    return SUCCESS;
+   
+}
+
+int last_seven_day_expense(Option o){
+    Journal row;
+    Date date_today;
+    Date seven_ago;
+    DateStr date;
+    double sum =0;
+    
+    date_now(&date_today);
+
+    FILE* f = fopen("journal.tsv", "r");
+    if ( f == NULL){
+        printf("Nothing to summrize!\n");
+        return ERROR;
+    }
+
+    seven_ago.day = date_today.day;
+    seven_ago.month = date_today. month;
+    seven_ago.year = date_today.year;
+
+    date_add_days(&seven_ago, -7);
+
+    while(fscanf(f, "%s\t%lf\t%s", date, &row.amount, row.tag) == 3){        
+        date_from_str(date, &row.date);    
+        if (date_lte(row.date, date_today) == true && date_gte(row.date, seven_ago) == true){
+            debug_journal(row);
+            sum = sum + row.amount;
+        }
+            
+    }   
+
+    fclose(f);
+
+    printf("--------------------\n");
+    printf("Seven days ago expenses:\t%.2lf$\n", sum);
+    printf("--------------------\n");
+    printf("\n");
+
+    return SUCCESS;
+}
+
+int last_month_expense(){
+    return SUCCESS;
+}
+
+
+
 int print_summary(Option o){
     Journal row;
     double sum = 0;
+    DateStr date;
     int max_rows_to_print = 5;
 
     FILE* f = fopen("journal.tsv", "r");
@@ -126,24 +202,30 @@ int print_summary(Option o){
         printf("Nothing to summrize!\n");
         return ERROR;
     }
-    
-    while(fscanf(f, "%s\t%lf\t%s", row.date, &row.amount, row.tag) == 3){
+    //printf("ss\n");
+    while(fscanf(f, "%s\t%lf\t%s",date, &row.amount, row.tag) == 3){
         sum = sum + row.amount;
         max_rows_to_print--;
         if(max_rows_to_print >= 0){
+            date_from_str(date, &row.date);
             debug_journal(row);       
-        } 
+        }
     }
     fclose(f);
     printf("--------------------\n");
-    printf("Current:\n\t%.2lf$\n", sum);
+    printf("Current:\t\t%.2lf$\n", sum);
+    printf("--------------------\n");
+    printf("\n");
+
+    today_expenses(o);
+    last_seven_day_expense(o);
+
     return SUCCESS;
 }
 
 int main(int argc, char** argv){
     Option o;
     Journal j;
-
     int result;
     result = get_args(argc, argv, &o);
     if (result != 0){
@@ -161,7 +243,7 @@ int main(int argc, char** argv){
             return record_income(o);
         case COMMAND_SUMMARY:
             return print_summary(o);
+            //return today_expenses(o);
     } 
-    
     return SUCCESS;
 }
