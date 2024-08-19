@@ -8,19 +8,18 @@
 #define ERROR 1
 #define SUCCESS 0
 
-typedef char Date[MAX_DATE_SIZE + 1];
-typedef char Tag[MAX_TAG_SIZE + 1];
-typedef char Amount[MAX_AMOUNT_SIZE + 1];
+typedef char DateStr[MAX_DATE_SIZE + 1];
+typedef char TagStr[MAX_TAG_SIZE + 1];
+typedef char AmountStr[MAX_AMOUNT_SIZE + 1];
 
+typedef struct{
+    int year;
+    int month;
+    int day;
+} Date;
 
 typedef struct{
     Date date;
     double amount;
-    Tag tag;
+    TagStr tag;
 } Journal;
-
-void debug_journal(Journal j){
-    
-    printf("%s\t%10.2lf$\t#%s\n", j.date, j.amount, j.tag );
-    
-}
