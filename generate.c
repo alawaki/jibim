@@ -36,7 +36,7 @@ int main() {
     }
 
     for(month = 1; month <= 12; month++) {
-        for (day = 1; day <= 8; day++) {
+        for (day = 1; day <= 28; day++) {
 
             chg = rand() % 199 - 99;
             amount = (double)chg;
@@ -52,7 +52,7 @@ int main() {
                 if (sum < 0 ){
                     sum = sum + 700;
                     double s = 700;
-                    fprintf(file, "2023.%02d.%02d\t%.2lf\t%s\n", month, day, s, tags_income[0]);
+                    fprintf(file, "2024.%02d.%02d\t%.2lf\t%s\n", month, day, s, tags_income[0]);
                     printf("%d=\n", sum);
                 }
             }  
@@ -62,14 +62,14 @@ int main() {
 
                 tag_e = tags_expense[num_tag];
 
-                fprintf(file, "2023.%02d.%02d\t%.2lf\t%s\n", month, day, amount * 10, tag_e);    
+                fprintf(file, "2024.%02d.%02d\t%.2lf\t%s\n", month, day, amount * 10, tag_e);    
 
             }else if(amount > 0){
                 num_tag= rand() % (4 - 0 + 1) + 0;
     
                 tag_i = tags_income[num_tag];
 
-                fprintf(file, "2023.%02d.%02d\t%.2lf\t%s\n", month, day, amount * 10, tag_i);
+                fprintf(file, "2024.%02d.%02d\t%.2lf\t%s\n", month, day, amount * 10, tag_i);
 
             }else{
             }

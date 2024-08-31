@@ -12,6 +12,7 @@ void date_now(Date* out){
     out->year = tm_info->tm_year;
     out->year = out->year + 1900;
     out->month = tm_info->tm_mon;
+    out->month = out->month + 1;
     out->day = tm_info->tm_mday;
 
 }
@@ -127,7 +128,7 @@ void date_end_of_month(Date a, Date* out){
 }
 
 
-void date_add_days(Date* a, int days){
+void _date_add_days(Date* a, int days){
     
     if(days < 0){
         a->day --;
@@ -140,7 +141,7 @@ void date_add_days(Date* a, int days){
             a->day = days_in_month(a->year, a->month);
         }
         if(days < -1){
-            date_add_days(a, days + 1);
+            _date_add_days(a, days + 1);
         }
     }else if (days > 0){
         a->day ++;
@@ -153,11 +154,49 @@ void date_add_days(Date* a, int days){
             }
         }
         if(days > 1){
-            date_add_days(a, days - 1);
+            _date_add_days(a, days - 1);
         }
         
     }
 
+}
+
+void date_copy(Date org, Date* out){
+    out->year = org.year;
+    out->month = org.month;
+    out->day = org.day;
+}
+
+void date_add_days(Date org, int days, Date* out){
+    date_copy(org, out);
+    _date_add_days(out, days);
+}
+
+void _date_add_month(Date* a, int months){
+    if(months < 0){
+        a->month --;
+        if(a->month < 1){
+            a->month = 12;
+            a->year --;
+        }
+        if(months < -1){
+            _date_add_month(a, months + 1);
+        }
+    }else if(months > 0){
+        a->month ++;
+        if(a->month > 12){
+            a->month = 1;
+            a->year ++;
+        }
+        if(months > 1){
+            _date_add_month(a, months -1);
+        }
+    }
+}
+
+void date_add_month(Date org, int months, Date* out){
+    date_copy(org, out);
+    _date_add_month(out, months);
 }
 
 void debug_journal(Journal j){
