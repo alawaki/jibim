@@ -114,7 +114,8 @@ int today_expenses(){
     Journal row;
     Date today;
     DateStr date;
-    double sum =0;
+    double sum_e =0;
+    double sum_i =0;
 
     date_now(&today);
 
@@ -128,19 +129,20 @@ int today_expenses(){
         date_from_str(date, &row.date);
         if (date_eq(row.date, today) == true){
             if(row.amount < 0 || row.amount > 0){
-                debug_journal(row);
-                sum = sum + row.amount;
+                //debug_journal(row);
+                if (row.amount < 0){
+                    sum_e = sum_e + row.amount;
+                }else
+                    sum_i = sum_i + row.amount;
             }
         }
     }
 
     fclose(f);
 
-    printf("------------------------\n");
-    printf("Todays expenses:\t%.2lf$\n", sum);
-    printf("------------------------\n");
-    printf("\n");
     
+    printf("Today:\033[31m%15.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
+
     return SUCCESS;
    
 }
@@ -150,7 +152,8 @@ int last_seven_day_expense(){
     Date today;
     Date seven_days_ago;
     DateStr date;
-    double sum =0;
+    double sum_e =0;
+    double sum_i =0;
 
     FILE* f = fopen("journal.tsv", "r");
     if ( f == NULL){
@@ -164,18 +167,18 @@ int last_seven_day_expense(){
     while(fscanf(f, "%s\t%lf\t%s", date, &row.amount, row.tag) == 3){        
         date_from_str(date, &row.date);    
         if (date_gte(row.date, seven_days_ago)){
-            debug_journal(row);
-            sum = sum + row.amount;
+            //debug_journal(row);
+            if(row.amount < 0){
+                sum_e = sum_e + row.amount;
+            }else
+                sum_i = sum_i + row.amount;
         }
             
     }   
 
     fclose(f);
 
-    printf("------------------------\n");
-    printf("Seven days ago expenses:\t%.2lf$\n", sum);
-    printf("------------------------\n");
-    printf("\n");
+    printf("Last week:\033[31m%11.2lf$\033[0m\033[32m%18.2lf$\033[0m\n", sum_e, sum_i);
 
     return SUCCESS;
 }
@@ -186,7 +189,8 @@ int last_month_expense(){
     Date first_ofthe_month;
     Date end_ofthe_month;
     DateStr date;
-    double sum = 0;
+    double sum_e = 0;
+    double sum_i = 0;
 
     FILE* f= fopen("journal.tsv", "r");
     if (f == NULL){
@@ -202,17 +206,17 @@ int last_month_expense(){
     while(fscanf(f, "%s\t%lf\t%s", date, &row.amount, row.tag) == 3){        
         date_from_str(date, &row.date);    
         if (date_gte(row.date, first_ofthe_month) && date_lte(row.date, end_ofthe_month)){
-            debug_journal(row);
-            sum = sum + row.amount;
+            //debug_journal(row);
+            if(row.amount < 0){
+                sum_e = sum_e + row.amount;
+            }else
+                sum_i = sum_i + row.amount;
         }    
     }   
 
     fclose(f);
 
-    printf("------------------------\n");
-    printf("One month ago expenses:\t%.2lf$\n", sum);
-    printf("------------------------\n");
-    printf("\n");
+    printf("Last month:\033[31m%13.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
 
     return SUCCESS;
 }
@@ -222,7 +226,8 @@ int last_three_month_expense(){
     Date today;
     Date three_month_ago;
     DateStr date;
-    double sum = 0;
+    double sum_e = 0;
+    double sum_i = 0;
 
     FILE* f= fopen("journal.tsv", "r");
     if (f == NULL){
@@ -236,17 +241,17 @@ int last_three_month_expense(){
     while(fscanf(f, "%s\t%lf\t%s", date, &row.amount, row.tag) == 3){        
         date_from_str(date, &row.date);    
         if (date_gte(row.date, three_month_ago)){
-            debug_journal(row);
-            sum = sum + row.amount;
+            //debug_journal(row);
+            if(row.amount < 0){
+                sum_e = sum_e + row.amount;
+            }else
+                sum_i = sum_i + row.amount;
         }    
     }   
 
     fclose(f);
 
-    printf("------------------------\n");
-    printf("Three month ago expenses:\t%.2lf$\n", sum);
-    printf("------------------------\n");
-    printf("\n");
+    printf("Last 3 month:\033[31m%12.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
 
     return SUCCESS;
 
@@ -257,7 +262,8 @@ int last_six_month_expense(){
     Date today;
     Date six_month_ago;
     DateStr date;
-    double sum = 0;
+    double sum_e = 0;
+    double sum_i = 0;
 
     FILE* f = fopen("journal.tsv", "r");
     if (f == NULL){
@@ -271,17 +277,17 @@ int last_six_month_expense(){
     while(fscanf(f, "%s\t%lf\t%s", date, &row.amount, row.tag) == 3){        
         date_from_str(date, &row.date);    
         if (date_gte(row.date, six_month_ago)){
-            debug_journal(row);
-            sum = sum + row.amount;
+            //debug_journal(row);
+            if (row.amount < 0){
+                sum_e = sum_e + row.amount;
+            }else
+                sum_i = sum_i + row.amount;
         }    
     }
 
     fclose(f);
 
-    printf("------------------------\n");
-    printf("Six month ago expenses:\t%.2lf$\n", sum);
-    printf("------------------------\n");
-    printf("\n");
+    printf("Last 6 month:\033[31m%12.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
 
     return SUCCESS;    
 }
@@ -291,7 +297,8 @@ int last_year_expense(){
     Date today;
     Date one_year_ago;
     DateStr date;
-    double sum = 0;
+    double sum_e = 0;
+    double sum_i = 0;
 
     FILE* f = fopen("journal.tsv", "r");
     if( f == NULL){
@@ -307,24 +314,25 @@ int last_year_expense(){
     while(fscanf(f, "%s\t%lf\t%s", date, &row.amount, row.tag) == 3){        
         date_from_str(date, &row.date);    
         if (date_eq(row.date, one_year_ago) && date_lte(row.date, today)){
-            debug_journal(row);
-            sum = sum + row.amount;
+            //debug_journal(row);
+            if(row.amount < 0 ){
+                sum_e = sum_e + row.amount;
+            }else
+                sum_i = sum_i + row.amount;
         }    
     }
 
     fclose(f);
 
-    printf("------------------------\n");
-    printf("One year ago expenses:\t%.2lf$\n", sum);
-    printf("------------------------\n");
-    printf("\n");
+    printf("Last year:\033[31m%11.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
 
     return SUCCESS;
 }
 
 int print_summary(){
     Journal row;
-    double sum = 0;
+    double sum_e = 0;
+    double sum_i = 0;
     DateStr date;
     int max_rows_to_print = 5;
 
@@ -335,7 +343,10 @@ int print_summary(){
     }
     
     while(fscanf(f, "%s\t%lf\t%s",date, &row.amount, row.tag) == 3){
-        sum = sum + row.amount;
+        if (row.amount < 0){
+            sum_e = sum_e + row.amount;
+        }else
+            sum_i = sum_i + row.amount;       
         max_rows_to_print--;
         if(max_rows_to_print >= 0){
             date_from_str(date, &row.date);
@@ -344,11 +355,9 @@ int print_summary(){
     }
 
     fclose(f);
-
-    printf("--------------------\n");
-    printf("Current:\t\t%.2lf$\n", sum);
-    printf("--------------------\n");
-    printf("\n");
+    printf("\nDate                 expense         income      \n");
+    printf("---------------------------------------------\n");
+    printf("Current:\033[31m%17.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
 
     today_expenses();
     last_seven_day_expense();
