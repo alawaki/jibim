@@ -4,9 +4,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "common.h"
 #include "utils.h"
+#include "data.h"
 
 typedef enum {
     COMMAND_UNKNOWN,
@@ -110,146 +112,120 @@ int record_income(Option o){
     return append(o.income_value, o.tag_value, 1.0);
 }
 
-int today_expenses(){
-    Journal row;
-    Date today;
-    DateStr date;
-    double sum_e =0;
-    double sum_i =0;
-
-    date_now(&today);
-
-    FILE* f = fopen("journal.tsv", "r");
-    if ( f == NULL){
-        printf("Nothing to summrize!\n");
-        return ERROR;
-    }
-
-    while(fscanf(f, "%s\t%lf\t%s", date, &row.amount, row.tag) == 3){        
-        date_from_str(date, &row.date);
-        if (date_eq(row.date, today) == true){
-            if(row.amount < 0 || row.amount > 0){
-                //debug_journal(row);
-                if (row.amount < 0){
-                    sum_e = sum_e + row.amount;
-                }else
-                    sum_i = sum_i + row.amount;
-            }
-        }
-    }
-
-    fclose(f);
-
-    
-    printf("Today:\033[31m%15.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
-
-    return SUCCESS;
-   
-}
-
-int last_seven_day_expense(){
-    Journal row;
-    Date today;
-    Date seven_days_ago;
-    DateStr date;
-    double sum_e =0;
-    double sum_i =0;
-
-    FILE* f = fopen("journal.tsv", "r");
-    if ( f == NULL){
-        printf("Nothing to summrize!\n");
-        return ERROR;
-    }
-
-    date_now(&today);
-    date_add_days(today, -7, &seven_days_ago);
-
-    while(fscanf(f, "%s\t%lf\t%s", date, &row.amount, row.tag) == 3){        
-        date_from_str(date, &row.date);    
-        if (date_gte(row.date, seven_days_ago)){
-            //debug_journal(row);
-            if(row.amount < 0){
-                sum_e = sum_e + row.amount;
-            }else
-                sum_i = sum_i + row.amount;
-        }
-            
-    }   
-
-    fclose(f);
-
-    printf("Last week:\033[31m%11.2lf$\033[0m\033[32m%18.2lf$\033[0m\n", sum_e, sum_i);
-
-    return SUCCESS;
-}
-
-int last_month_expense(){
-    Journal row;
+int get_expense(Database* d, int i){
     Date today;
     Date first_ofthe_month;
     Date end_ofthe_month;
-    DateStr date;
+    double sum_e = 0;
+
+    date_now(&today);
+    date_add_month(today, -i, &first_ofthe_month);
+    date_end_of_month(first_ofthe_month, &end_ofthe_month);
+    date_begin_of_month(first_ofthe_month, &first_ofthe_month);
+
+    
+    for(int i = 0; i < d->count; i++){
+        if(date_gte(d->records[i].date, first_ofthe_month) && date_lte(d->records[i].date, end_ofthe_month) == true){
+            if(d->records[i].amount < 0){
+                sum_e = sum_e + d->records[i].amount;
+            }    
+        }
+    }
+    return sum_e;
+} 
+
+int today_expenses(Database* d){
+    Date today;
+    double sum_e =0;
+    double sum_i =0;
+
+    date_now(&today);
+    
+    for(int i = 0; i < d->count; i++){
+        if(date_eq(d->records[i].date, today) == true){
+            if(d->records[i].amount > 0){
+                sum_i = sum_i + d->records[i].amount;
+            }else {
+                sum_e = sum_e + d->records[i].amount;
+            }    
+        }
+    }
+
+    printf("Today:\033[31m%17.2lf$\033[0m\033[32m%13.2lf$\033[0m\n", sum_e, sum_i);
+
+    return SUCCESS;   
+}
+
+int last_seven_day_expense(Database* d){
+    Date today;
+    Date seven_days_ago;
+    double sum_e =0;
+    double sum_i =0;
+
+    date_now(&today);
+    date_add_days(today, -7, &seven_days_ago);
+    
+    for(int i = 0; i < d->count; i++){
+        if(date_gte(d->records[i].date, seven_days_ago) == true){
+            if(d->records[i].amount > 0){
+                sum_i = sum_i + d->records[i].amount;
+            }else {
+                sum_e = sum_e + d->records[i].amount;
+            }    
+        }
+    }
+
+    printf("Last week:\033[31m%13.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
+
+    return SUCCESS;
+}
+
+int last_month_expense(Database* d){
+    Date today;
+    Date first_ofthe_month;
+    Date end_ofthe_month;
     double sum_e = 0;
     double sum_i = 0;
-
-    FILE* f= fopen("journal.tsv", "r");
-    if (f == NULL){
-        printf("Nothing to summrize!\n");
-        return ERROR;
-    }
 
     date_now(&today);
     date_add_month(today, -1, &first_ofthe_month);
     date_end_of_month(first_ofthe_month, &end_ofthe_month);
     date_begin_of_month(first_ofthe_month, &first_ofthe_month);
     
-    while(fscanf(f, "%s\t%lf\t%s", date, &row.amount, row.tag) == 3){        
-        date_from_str(date, &row.date);    
-        if (date_gte(row.date, first_ofthe_month) && date_lte(row.date, end_ofthe_month)){
-            //debug_journal(row);
-            if(row.amount < 0){
-                sum_e = sum_e + row.amount;
-            }else
-                sum_i = sum_i + row.amount;
-        }    
-    }   
-
-    fclose(f);
+    
+    for(int i = 0; i < d->count; i++){
+        if(date_gte(d->records[i].date, first_ofthe_month) && date_lte(d->records[i].date, end_ofthe_month) == true){
+            if(d->records[i].amount > 0){
+                sum_i = sum_i + d->records[i].amount;
+            }else {
+                sum_e = sum_e + d->records[i].amount;
+            }    
+        }
+    }
 
     printf("Last month:\033[31m%13.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
 
     return SUCCESS;
 }
 
-int last_three_month_expense(){
-    Journal row;
+int last_three_month_expense(Database* d){
     Date today;
     Date three_month_ago;
-    DateStr date;
     double sum_e = 0;
     double sum_i = 0;
-
-    FILE* f= fopen("journal.tsv", "r");
-    if (f == NULL){
-        printf("Nothing to summrize!\n");
-        return ERROR;
-    }
 
     date_now(&today);
     date_add_month(today, -3, &three_month_ago);
 
-    while(fscanf(f, "%s\t%lf\t%s", date, &row.amount, row.tag) == 3){        
-        date_from_str(date, &row.date);    
-        if (date_gte(row.date, three_month_ago)){
-            //debug_journal(row);
-            if(row.amount < 0){
-                sum_e = sum_e + row.amount;
-            }else
-                sum_i = sum_i + row.amount;
-        }    
-    }   
-
-    fclose(f);
+    for(int i = 0; i < d->count; i++){
+        if(date_gte(d->records[i].date, three_month_ago) == true){
+            if(d->records[i].amount > 0){
+                sum_i = sum_i + d->records[i].amount;
+            }else {
+                sum_e = sum_e + d->records[i].amount;
+            }    
+        }
+    }
 
     printf("Last 3 month:\033[31m%12.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
 
@@ -257,139 +233,179 @@ int last_three_month_expense(){
 
 }
 
-int last_six_month_expense(){
-    Journal row;
+int last_six_month_expense(Database* d){
     Date today;
     Date six_month_ago;
-    DateStr date;
     double sum_e = 0;
     double sum_i = 0;
-
-    FILE* f = fopen("journal.tsv", "r");
-    if (f == NULL){
-        printf("Nothing to summrize!\n");
-        return ERROR;
-    }
 
     date_now(&today);
     date_add_month(today, -6, &six_month_ago);
 
-    while(fscanf(f, "%s\t%lf\t%s", date, &row.amount, row.tag) == 3){        
-        date_from_str(date, &row.date);    
-        if (date_gte(row.date, six_month_ago)){
-            //debug_journal(row);
-            if (row.amount < 0){
-                sum_e = sum_e + row.amount;
-            }else
-                sum_i = sum_i + row.amount;
-        }    
+    for(int i = 0; i < d->count; i++){
+        if(date_gte(d->records[i].date, six_month_ago) == true){
+            if(d->records[i].amount > 0){
+                sum_i = sum_i + d->records[i].amount;
+            }else {
+                sum_e = sum_e + d->records[i].amount;
+            }    
+        }
     }
 
-    fclose(f);
-
     printf("Last 6 month:\033[31m%12.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
-
+    
     return SUCCESS;    
 }
 
-int last_year_expense(){
-    Journal row;
+int last_year_expense(Database* d){
     Date today;
     Date one_year_ago;
-    DateStr date;
     double sum_e = 0;
     double sum_i = 0;
-
-    FILE* f = fopen("journal.tsv", "r");
-    if( f == NULL){
-        printf("Nothing to summrize!\n");
-        return ERROR;
-    }
 
     date_now(&today);
     today.year --;
     date_begin_of_year(today, &one_year_ago);
     date_end_of_year(today, &today);
 
-    while(fscanf(f, "%s\t%lf\t%s", date, &row.amount, row.tag) == 3){        
-        date_from_str(date, &row.date);    
-        if (date_eq(row.date, one_year_ago) && date_lte(row.date, today)){
-            //debug_journal(row);
-            if(row.amount < 0 ){
-                sum_e = sum_e + row.amount;
-            }else
-                sum_i = sum_i + row.amount;
-        }    
+    
+    for(int i = 0; i < d->count; i++){
+        if(date_gte(d->records[i].date, one_year_ago) && date_lte(d->records[i].date, today) == true){
+            if(d->records[i].amount > 0){
+                sum_i = sum_i + d->records[i].amount;
+            }else {
+                sum_e = sum_e + d->records[i].amount;
+            }    
+        }
     }
 
-    fclose(f);
-
-    printf("Last year:\033[31m%11.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
+    printf("Last year:\033[31m%15.2lf$\033[0m\033[32m%15.2lf$\033[0m\n\n", sum_e, sum_i);
 
     return SUCCESS;
 }
 
-int print_summary(){
-    Journal row;
-    double sum_e = 0;
-    double sum_i = 0;
-    DateStr date;
-    int max_rows_to_print = 5;
-
-    FILE* f = fopen("journal.tsv", "r");
-    if ( f == NULL){
-        printf("Nothing to summrize!\n");
-        return ERROR;
+void print_chart_expense(Database* d){
+    Date today;
+    int data[6];
+    int month;
+    double sum = 0;
+    date_now(&today);
+    month = today.month;
+    
+    for(int i = 0; i <= 5; i++){
+        sum  = get_expense(d, month);
+        printf("((s:%lf))\n ", sum);
+        data[i-1] = (int)sum * -1;
+        if(month < 1 ){
+            today.year --;
+            month = 12;
+        }
+        printf("m:%d,i:%d,d:%d\t", month, i, data[i-1]);
+        month--;
     }
     
-    while(fscanf(f, "%s\t%lf\t%s",date, &row.amount, row.tag) == 3){
-        if (row.amount < 0){
-            sum_e = sum_e + row.amount;
-        }else
-            sum_i = sum_i + row.amount;       
-        max_rows_to_print--;
-        if(max_rows_to_print >= 0){
-            date_from_str(date, &row.date);
-            debug_journal(row);       
+    for(int i = 0; i <=5; i++){
+        printf("i(%d):d(%d)\n", i, data[i-1]);
+    }
+    int max = 0;
+    char* months[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+    
+    for (int i = 5; i >= 0; i--){
+        printf("%d,[%d]", i, data[i-1]);
+        if(data[i-1] > max){
+            max = data[i-1];
+            printf("%d,(%d)\t", i, max);
+        }
+    }
+    
+    for (int level = max; level > 0; level -= 500){
+        for (int j = 0; j < 6; j++){
+            if (data[j] >= level){
+                printf(" █  ");
+            } else {
+                printf("    ");
+            }
+        }
+        printf("\n");
+    }
+
+    printf("-----------------------------------------------\n");
+
+    for (int q = 0; q < month; q++){
+        printf("%s ", months[q]);
+    }
+    printf("\n");
+}
+
+int print_summary(Database* d){
+    double sum_e = 0;
+    double sum_i = 0;
+    double jibim = 0;
+    DateStr date;
+
+    int i = d->count - 1;
+    printf("%d\n", d->count);
+    for(int j = 0; j < 5; j++){
+        debug_journal(&d->records[i]);    
+        i--;
+    }
+
+    for(int j = 0; j < d->count; j++){
+        if(d->records[j].amount > 0){
+            sum_i = sum_i + d->records[j].amount;
+        }else {
+            sum_e = sum_e + d->records[j].amount;
         }
     }
 
-    fclose(f);
-    printf("\nDate                 expense         income      \n");
+    jibim = sum_e + sum_i;
+
+    printf("\nTotal:\033[31m%19.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
+    printf("Jibim:\033[32m%18.2lf$\033[0m\n", jibim);
+    printf("\nDate             Expense         Income      \n");
     printf("---------------------------------------------\n");
-    printf("Current:\033[31m%17.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
-
-    today_expenses();
-    last_seven_day_expense();
-    last_month_expense();
-    last_three_month_expense();
-    last_six_month_expense();
-    last_year_expense();
-
-    return SUCCESS;
+    
+    today_expenses(d);
+    last_seven_day_expense(d);
+    last_month_expense(d);
+    last_three_month_expense(d);
+    last_six_month_expense(d);
+    last_year_expense(d);
+    
+    print_chart_expense(d);
+    
+    return 0;
 }
 
 int main(int argc, char** argv){
     Option o;
-    Journal j;
     int result;
     result = get_args(argc, argv, &o);
     if (result != 0){
         print_usage();
         return result;
     }
+    
+    Database d;
+    database_open(&d);
+
     Command cmd = get_command(o);
     switch(cmd){
         case COMMAND_UNKNOWN:
             print_usage();
-            return ERROR;
+            result = ERROR;
+            break;
         case COMMAND_EXPENSE:
-            return record_expense(o);
+            result = record_expense(o);
+            break;
         case COMMAND_INCOME:
-            return record_income(o);
+            result = record_income(o);
+            break;
         case COMMAND_SUMMARY:
-            return print_summary();
+            result = print_summary(&d);
+            break;
       
     } 
-    return SUCCESS;
+    database_free(&d); 
+    return result;
 }

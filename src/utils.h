@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdbool.h>
-#include "common.h"
 
+#include "common.h"
 
 void date_now(Date* out){
     time_t t = time(NULL);
@@ -52,7 +52,7 @@ int date_cmp(Date a, Date b){
     }else if(x < y){
         return -1;
     }
-    return SUCCESS;
+    return 0;
 }
 
 void date_to_str(Date a, char* str){
@@ -199,14 +199,20 @@ void date_add_month(Date org, int months, Date* out){
     _date_add_month(out, months);
 }
 
-void debug_journal(Journal j){
+
+bool str_eq(char* tag, char* in){
+    return strcmp(tag, in) == 0;
+}
+
+
+void debug_journal(Journal* j){
     
     DateStr dt;
-    date_to_str(j.date, dt);
-    if (j.amount < 0){
-        printf("%s\t\033[31m%10.2lf$\033[0m\t#%s\n", dt, j.amount, j.tag );
-    }else if (j.amount > 0){
-        printf("%s\t\033[32m%10.2lf$\033[0m\t#%s\n", dt, j.amount, j.tag );
+    date_to_str(j->date, dt);
+    if (j->amount < 0){
+        printf("%s\t\033[31m%10.2lf$\033[0m\t#%s\n", dt, j->amount, j->tag );
+    }else if (j->amount > 0){
+        printf("%s\t\033[32m%10.2lf$\033[0m\t#%s\n", dt, j->amount, j->tag );
     }
     
 }
