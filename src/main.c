@@ -150,7 +150,7 @@ int today_expenses(Database* d){
             }    
         }
     }
-
+    //printf("Today:\033[31m%15.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
     printf("Today:\033[31m%17.2lf$\033[0m\033[32m%13.2lf$\033[0m\n", sum_e, sum_i);
 
     return SUCCESS;   
@@ -175,7 +175,7 @@ int last_seven_day_expense(Database* d){
         }
     }
 
-    printf("Last week:\033[31m%13.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
+    printf("Last week: \033[31m%13.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
 
     return SUCCESS;
 }
@@ -279,7 +279,7 @@ int last_year_expense(Database* d){
         }
     }
 
-    printf("Last year:\033[31m%15.2lf$\033[0m\033[32m%15.2lf$\033[0m\n\n", sum_e, sum_i);
+    printf("Last year:\033[31m%15.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
 
     return SUCCESS;
 }
@@ -287,41 +287,35 @@ int last_year_expense(Database* d){
 void print_chart_expense(Database* d){
     Date today;
     int data[6];
-    int month;
+    int month_index[6];
     double sum = 0;
     date_now(&today);
-    month = today.month;
     
-    for(int i = 0; i <= 5; i++){
-        sum  = get_expense(d, month);
-        printf("((s:%lf))\n ", sum);
-        data[i-1] = (int)sum * -1;
-        if(month < 1 ){
-            today.year --;
-            month = 12;
-        }
-        printf("m:%d,i:%d,d:%d\t", month, i, data[i-1]);
-        month--;
+    
+    //get expense from last 6 months until now
+    for(int i = 5; i >= 0; i--){
+        Date tmp;
+        sum  = get_expense(d, i);
+        date_add_month(today, -i, &tmp);
+        data[5 - i] = (int)(-1 * sum);
+        month_index[5 - i] = tmp.month;
     }
     
-    for(int i = 0; i <=5; i++){
-        printf("i(%d):d(%d)\n", i, data[i-1]);
-    }
+    //get the maximum expense from last 6 months
     int max = 0;
-    char* months[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-    
-    for (int i = 5; i >= 0; i--){
-        printf("%d,[%d]", i, data[i-1]);
-        if(data[i-1] > max){
-            max = data[i-1];
-            printf("%d,(%d)\t", i, max);
+    for (int i = 0; i < 6 ; i++){
+        if(data[i] > max){
+            max = data[i];
         }
+        printf("\n");
     }
     
     for (int level = max; level > 0; level -= 500){
-        for (int j = 0; j < 6; j++){
+        for (int j = 5; j >= 0; j--){
             if (data[j] >= level){
-                printf(" █  ");
+                double intensy = (double)level / max;
+                int greem_blue = (int)((1.0 - intensy) * 180);
+                printf(" \033[38;2;255;%d;%dm█\033[0m  ", greem_blue, greem_blue);
             } else {
                 printf("    ");
             }
@@ -331,8 +325,19 @@ void print_chart_expense(Database* d){
 
     printf("-----------------------------------------------\n");
 
-    for (int q = 0; q < month; q++){
-        printf("%s ", months[q]);
+    char* months[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+    today.month;
+    int month = 0;
+    int i = 1;
+    for (int k = 1; k <= 6; k++){
+        month = today.month - i;
+        if (month <= 0){
+            today.month = 12;
+            i = 0;
+        }
+        printf("%s ", months[month]);
+        i = i + 1;
     }
     printf("\n");
 }

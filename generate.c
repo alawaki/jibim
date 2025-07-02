@@ -62,14 +62,14 @@ int main() {
 
                 tag_e = tags_expense[num_tag];
 
-                fprintf(file, "2024.%02d.%02d\t%.2lf\t%s\n", month, day, amount * 10, tag_e);    
+                fprintf(file, "2025.%02d.%02d\t%.2lf\t%s\n", month, day, amount * 10, tag_e);    
 
             }else if(amount > 0){
                 num_tag= rand() % (4 - 0 + 1) + 0;
     
                 tag_i = tags_income[num_tag];
 
-                fprintf(file, "2024.%02d.%02d\t%.2lf\t%s\n", month, day, amount * 10, tag_i);
+                fprintf(file, "2025.%02d.%02d\t%.2lf\t%s\n", month, day, amount * 10, tag_i);
 
             }else{
             }
