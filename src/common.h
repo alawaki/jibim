@@ -23,3 +23,8 @@ typedef struct{
     double amount;
     TagStr tag;
 } Journal;
+
+typedef struct{
+    char tag[MAX_TAG_SIZE];
+    int total_expense;
+} TagExpense;
