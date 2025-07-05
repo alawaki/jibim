@@ -25,6 +25,7 @@ int main() {
     int sum = 700.00;
     int chg;
 
+    int year = 2025;
     int month;
     int day;
 
@@ -50,9 +51,9 @@ int main() {
                 printf("%.2lf=%d\n", amount * 10, sum);
                 
                 if (sum < 0 ){
-                    sum = sum + 700;
-                    double s = 700;
-                    fprintf(file, "2024.%02d.%02d\t%.2lf\t%s\n", month, day, s, tags_income[0]);
+                    sum = sum + 1400;
+                    double s = 1400;
+                    fprintf(file, "%d.%02d.%02d\t%.2lf\t%s\n", year, month, day, s, tags_income[0]);
                     printf("%d=\n", sum);
                 }
             }  
@@ -62,14 +63,14 @@ int main() {
 
                 tag_e = tags_expense[num_tag];
 
-                fprintf(file, "2025.%02d.%02d\t%.2lf\t%s\n", month, day, amount * 10, tag_e);    
+                fprintf(file, "%d.%02d.%02d\t%.2lf\t%s\n", year, month, day, amount * 10, tag_e);    
 
             }else if(amount > 0){
                 num_tag= rand() % (4 - 0 + 1) + 0;
     
                 tag_i = tags_income[num_tag];
 
-                fprintf(file, "2025.%02d.%02d\t%.2lf\t%s\n", month, day, amount * 10, tag_i);
+                fprintf(file, "%d.%02d.%02d\t%.2lf\t%s\n", year, month, day, amount * 10, tag_i);
 
             }else{
             }

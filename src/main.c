@@ -346,8 +346,8 @@ void print_three_month_most_tags(Database* d){
     Date today;
     Date three_month_ago;
 
-    date_add_month(today, -3, &three_month_ago);
     date_now(&today);
+    date_add_month(today, -3, &three_month_ago);
     TagExpense tags[100];//limit
     int tag_count = 0;
     
@@ -356,7 +356,7 @@ void print_three_month_most_tags(Database* d){
         if (date_gte(j.date, three_month_ago)){
             if(j.amount < 0){
                 int found = 0;
-                for (int q; q < tag_count; q++){
+                for (int q = 0; q < tag_count; q++){
                     if(strcmp(tags[q].tag, j.tag) == 0) {
                         tags[q].total_expense += j.amount;
                         found = 1;
@@ -371,7 +371,60 @@ void print_three_month_most_tags(Database* d){
             }
         }
     }
+
+    for (int i = 0; i < tag_count - 1; i++) {
+        for (int j = i + 1; j < tag_count; j++) {
+            if (tags[i].total_expense > tags[j].total_expense) {
+                TagExpense tmp = tags[i];
+                tags[i] = tags[j];
+                tags[j] = tmp;
+
+            }
+
+        }
+
+    }
+    printf("\nTop 5 expense tags in the last 3 months:\n");
+    printf("-----------------------------------------------\n");
+    for (int i = 0; i < 5 && i < tag_count; i++) {
+
+        printf("%d: #%s    ", i+1, tags[i].tag);
+        printf("\t→  \033[31m%d$\033[0m spent\n", tags[i].total_expense);     
+
+    }
+
+}
+
+void print_three_month_most_tags_income(Database* d){
+    Date today;
+    Date three_month_ago;
+
+    date_now(&today);
+    date_add_month(today, -3, &three_month_ago);
+    TagExpense tags[100];//limit
+    int tag_count = 0;
     
+    for (int i = 0; i < d->count; i++){
+        Journal j = d->records[i];
+        if (date_gte(j.date, three_month_ago)){
+            if(j.amount > 0){
+                int found = 0;
+                for (int q = 0; q < tag_count; q++){
+                    if(strcmp(tags[q].tag, j.tag) == 0) {
+                        tags[q].total_expense += j.amount;
+                        found = 1;
+                        break;
+                    }
+                }
+                if (!found){
+                    strncpy(tags[tag_count].tag, j.tag, MAX_TAG_SIZE);
+                    tags[tag_count].total_expense = j.amount;
+                    tag_count++;
+                }
+            }
+        }
+    }
+
     for (int i = 0; i < tag_count - 1; i++) {
         for (int j = i + 1; j < tag_count; j++) {
             if (tags[i].total_expense < tags[j].total_expense) {
@@ -384,14 +437,16 @@ void print_three_month_most_tags(Database* d){
         }
 
     }
-    printf("\nTop 5 expense tags in the last 3 months:\n");
-
+    printf("\nTop 5 income tags in the last 3 months:\n");
+    printf("-----------------------------------------------\n");
     for (int i = 0; i < 5 && i < tag_count; i++) {
 
-        printf(" #%s\t→ %d spent\n", tags[i].tag, tags[i].total_expense);
+        printf("%d: #%s", i+1, tags[i].tag);
+        printf("\t→  \033[32m%d$\033[0m spent\n", tags[i].total_expense);     
 
     }
 
+    
 }
 
 int print_summary(Database* d){
@@ -428,10 +483,11 @@ int print_summary(Database* d){
     last_three_month_expense(d);
     last_six_month_expense(d);
     last_year_expense(d);
-    
-    print_three_month_most_tags(d);
 
     print_chart_expense(d);
+
+    print_three_month_most_tags(d);
+    print_three_month_most_tags_income(d);
     
     return 0;
 }
