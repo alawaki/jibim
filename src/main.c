@@ -286,8 +286,11 @@ int last_year_expense(Database* d){
 
 void print_chart_expense(Database* d){
     Date today;
+
     int data[6];
     int month_index[6];
+    int max_hight = 20;
+    
     double sum = 0;
     date_now(&today);
     
@@ -310,9 +313,15 @@ void print_chart_expense(Database* d){
         printf("\n");
     }
     
-    for (int level = max; level > 0; level -= 500){
+    int hights[d->count];
+    for (int i = 0; i < d->count; i++){
+        hights[i] = (data[i] * max_hight) / (max);
+        }
+
+    int level = max;
+    for (int row = max_hight; row > 0; row --){
         for (int j = 5; j >= 0; j--){
-            if (data[j] >= level){
+            if (hights[j] >= row){
                 double intensy = (double)level / max;
                 int greem_blue = (int)((1.0 - intensy) * 180);
                 printf(" \033[38;2;255;%d;%dm█\033[0m  ", greem_blue, greem_blue);
@@ -320,6 +329,7 @@ void print_chart_expense(Database* d){
                 printf("    ");
             }
         }
+        level = level - 500;
         printf("\n");
     }
 
@@ -342,7 +352,7 @@ void print_chart_expense(Database* d){
     printf("\n");
 }
 
-void print_three_month_most_tags(Database* d){
+void print_three_month_most_tags_expense(Database* d){
     Date today;
     Date three_month_ago;
 
@@ -454,12 +464,14 @@ int print_summary(Database* d){
     double sum_i = 0;
     double jibim = 0;
     DateStr date;
+    int q = 2;
 
     int i = d->count - 1;
-    printf("%d\n", d->count);
+    //printf("\033[15;95H%d\n", d->count);
     for(int j = 0; j < 5; j++){
         debug_journal(&d->records[i]);    
         i--;
+        
     }
 
     for(int j = 0; j < d->count; j++){
@@ -483,12 +495,12 @@ int print_summary(Database* d){
     last_three_month_expense(d);
     last_six_month_expense(d);
     last_year_expense(d);
-
-    print_chart_expense(d);
-
-    print_three_month_most_tags(d);
-    print_three_month_most_tags_income(d);
     
+    print_chart_expense(d);
+    /*
+    print_three_month_most_tags_expense(d);
+    print_three_month_most_tags_income(d);
+    */
     return 0;
 }
 
