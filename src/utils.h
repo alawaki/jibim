@@ -210,9 +210,9 @@ void debug_journal(Journal* j){
     DateStr dt;
     date_to_str(j->date, dt);
     if (j->amount < 0){
-        printf("%s\t\033[31m%10.2lf$\033[0m\t#%s\n", dt, j->amount, j->tag );
+        printf("\033[120C%s\t\033[31m%10.2lf$\033[0m\t#%s\n", dt, j->amount, j->tag );
     }else if (j->amount > 0){
-        printf("%s\t\033[32m%10.2lf$\033[0m\t#%s\n", dt, j->amount, j->tag );
+        printf("\033[120C%s\t\033[32m%10.2lf$\033[0m\t#%s\n", dt, j->amount, j->tag );
     }
     
 }

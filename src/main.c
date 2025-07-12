@@ -1,3 +1,5 @@
+#include <ncurses.h>
+
 #include <stdio.h>
 #include <time.h>
 #include <errno.h>
@@ -310,9 +312,10 @@ void print_chart_expense(Database* d){
         if(data[i] > max){
             max = data[i];
         }
-        printf("\n");
+        
     }
-    
+        printf("\n");
+
     int hights[d->count];
     for (int i = 0; i < d->count; i++){
         hights[i] = (data[i] * max_hight) / (max);
@@ -333,7 +336,7 @@ void print_chart_expense(Database* d){
         printf("\n");
     }
 
-    printf("-----------------------------------------------\n");
+    printf("---------------------------------------------\n");
 
     char* months[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
                         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
@@ -394,11 +397,11 @@ void print_three_month_most_tags_expense(Database* d){
         }
 
     }
-    printf("\nTop 5 expense tags in the last 3 months:\n");
-    printf("-----------------------------------------------\n");
+    printf("\n\033[120C\033[16ATop 5 expense tags in the last 3 months:\n");
+    printf("\033[120C---------------------------------------------\n");
     for (int i = 0; i < 5 && i < tag_count; i++) {
 
-        printf("%d: #%s    ", i+1, tags[i].tag);
+        printf("\033[120C%d: #%s    ", i+1, tags[i].tag);
         printf("\t→  \033[31m%d$\033[0m spent\n", tags[i].total_expense);     
 
     }
@@ -447,11 +450,11 @@ void print_three_month_most_tags_income(Database* d){
         }
 
     }
-    printf("\nTop 5 income tags in the last 3 months:\n");
-    printf("-----------------------------------------------\n");
+    printf("\n\033[120CTop 5 income tags in the last 3 months:\n");
+    printf("\033[120C---------------------------------------------\n");
     for (int i = 0; i < 5 && i < tag_count; i++) {
 
-        printf("%d: #%s", i+1, tags[i].tag);
+        printf("\033[120C%d: #%s", i+1, tags[i].tag);
         printf("\t→  \033[32m%d$\033[0m spent\n", tags[i].total_expense);     
 
     }
@@ -467,7 +470,9 @@ int print_summary(Database* d){
     int q = 2;
 
     int i = d->count - 1;
-    //printf("\033[15;95H%d\n", d->count);
+    //printf("%d\n", d->count);
+    printf("\033[3k\n");
+    printf("\033[120CLast transactions:\n\n");		
     for(int j = 0; j < 5; j++){
         debug_journal(&d->records[i]);    
         i--;
@@ -483,10 +488,11 @@ int print_summary(Database* d){
     }
 
     jibim = sum_e + sum_i;
-
-    printf("\nTotal:\033[31m%19.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
-    printf("Jibim:\033[32m%18.2lf$\033[0m\n", jibim);
-    printf("\nDate             Expense         Income      \n");
+    printf("\n\n");
+    printf("\033[120CTotal:\033[31m%19.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
+    printf("\033[120CJibim:\033[32m%18.2lf$\033[0m\n", jibim);
+    printf("\n");
+    printf("\033[12ADate             Expense         Income      \n");
     printf("---------------------------------------------\n");
     
     today_expenses(d);
@@ -497,10 +503,10 @@ int print_summary(Database* d){
     last_year_expense(d);
     
     print_chart_expense(d);
-    /*
+    
     print_three_month_most_tags_expense(d);
     print_three_month_most_tags_income(d);
-    */
+    
     return 0;
 }
 
