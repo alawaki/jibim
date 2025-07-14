@@ -1,5 +1,3 @@
-#include <ncurses.h>
-
 #include <stdio.h>
 #include <time.h>
 #include <errno.h>
@@ -153,7 +151,7 @@ int today_expenses(Database* d){
         }
     }
     //printf("Today:\033[31m%15.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
-    printf("Today:\033[31m%17.2lf$\033[0m\033[32m%13.2lf$\033[0m\n", sum_e, sum_i);
+    printf("│Today:\033[31m%19.2lf$\033[0m\033[32m%16.2lf$\033[0m \t│\n", sum_e, sum_i);
 
     return SUCCESS;   
 }
@@ -177,7 +175,7 @@ int last_seven_day_expense(Database* d){
         }
     }
 
-    printf("Last week: \033[31m%13.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
+    printf("│Last week: \033[31m%14.2lf$\033[0m\033[32m%16.2lf$\033[0m \t│\n", sum_e, sum_i);
 
     return SUCCESS;
 }
@@ -205,7 +203,7 @@ int last_month_expense(Database* d){
         }
     }
 
-    printf("Last month:\033[31m%13.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
+    printf("│Last month:\033[31m%14.2lf$\033[0m\033[32m%16.2lf$\033[0m \t│\n", sum_e, sum_i);
 
     return SUCCESS;
 }
@@ -229,7 +227,7 @@ int last_three_month_expense(Database* d){
         }
     }
 
-    printf("Last 3 month:\033[31m%12.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
+    printf("│Last 3 month:\033[31m%12.2lf$\033[0m\033[32m%16.2lf$\033[0m \t│\n", sum_e, sum_i);
 
     return SUCCESS;
 
@@ -254,7 +252,7 @@ int last_six_month_expense(Database* d){
         }
     }
 
-    printf("Last 6 month:\033[31m%12.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
+    printf("│Last 6 month:\033[31m%12.2lf$\033[0m\033[32m%16.2lf$\033[0m \t│\n", sum_e, sum_i);
     
     return SUCCESS;    
 }
@@ -281,7 +279,7 @@ int last_year_expense(Database* d){
         }
     }
 
-    printf("Last year:\033[31m%15.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
+    printf("│Last year:\033[31m%15.2lf$\033[0m\033[32m%16.2lf$\033[0m \t│\n", sum_e, sum_i);
 
     return SUCCESS;
 }
@@ -327,16 +325,16 @@ void print_chart_expense(Database* d){
             if (hights[j] >= row){
                 double intensy = (double)level / max;
                 int greem_blue = (int)((1.0 - intensy) * 180);
-                printf(" \033[38;2;255;%d;%dm█\033[0m  ", greem_blue, greem_blue);
+                printf(" \033[38;2;255;%d;%dm███\033[0m  ", greem_blue, greem_blue);
             } else {
-                printf("    ");
+                printf("      ");
             }
         }
         level = level - 500;
         printf("\n");
     }
 
-    printf("---------------------------------------------\n");
+    printf("└");
 
     char* months[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
                         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
@@ -349,7 +347,14 @@ void print_chart_expense(Database* d){
             today.month = 12;
             i = 0;
         }
-        printf("%s ", months[month]);
+
+        if(k == 6){
+            printf("%s┘", months[month]);
+            i = i + 1;
+            break;    
+        }
+
+        printf("%s───", months[month]);
         i = i + 1;
     }
     printf("\n");
@@ -397,14 +402,15 @@ void print_three_month_most_tags_expense(Database* d){
         }
 
     }
-    printf("\n\033[120C\033[16ATop 5 expense tags in the last 3 months:\n");
-    printf("\033[120C---------------------------------------------\n");
+    printf("\n\033[89C\033[18A┌─Top 5 expense tags in the last 3 months:────┐\n");
+    printf("\033[89C├─────────────────────────────────────────────┤\n");
     for (int i = 0; i < 5 && i < tag_count; i++) {
 
-        printf("\033[120C%d: #%s    ", i+1, tags[i].tag);
-        printf("\t→  \033[31m%d$\033[0m spent\n", tags[i].total_expense);     
+        printf("\033[89C│%d: #%-12s", i+1, tags[i].tag);
+        printf("→  \033[31m%d$\033[0m spent\033[14C│\n", tags[i].total_expense);     
 
     }
+    printf("\033[89C└─────────────────────────────────────────────┘\n");	
 
 }
 
@@ -450,15 +456,15 @@ void print_three_month_most_tags_income(Database* d){
         }
 
     }
-    printf("\n\033[120CTop 5 income tags in the last 3 months:\n");
-    printf("\033[120C---------------------------------------------\n");
+    printf("\n\033[89C┌─Top 5 income tags in the last 3 months:─────┐\n");
+    printf("\033[89C├─────────────────────────────────────────────┤\n");
     for (int i = 0; i < 5 && i < tag_count; i++) {
 
-        printf("\033[120C%d: #%s", i+1, tags[i].tag);
-        printf("\t→  \033[32m%d$\033[0m spent\n", tags[i].total_expense);     
+        printf("\033[89C│%d: #%-12s", i+1, tags[i].tag);
+        printf("→  \033[32m%d$\033[0m saved\033[15C│\n", tags[i].total_expense);     
 
     }
-
+    printf("\033[89C└─────────────────────────────────────────────┘\n");
     
 }
 
@@ -471,13 +477,15 @@ int print_summary(Database* d){
 
     int i = d->count - 1;
     //printf("%d\n", d->count);
-    printf("\033[3k\n");
-    printf("\033[120CLast transactions:\n\n");		
+    printf("\033[5k\n");
+    printf("\033[90C\n");	
+    printf("\033[89C┌─Last transactions:───────────────────────────┐\n");
+    //printf("\033[119C└────────────────────────────────────────────────┘\n");	
     for(int j = 0; j < 5; j++){
         debug_journal(&d->records[i]);    
         i--;
-        
     }
+    printf("\033[89C└──────────────────────────────────────────────┘\n");	
 
     for(int j = 0; j < d->count; j++){
         if(d->records[j].amount > 0){
@@ -488,12 +496,12 @@ int print_summary(Database* d){
     }
 
     jibim = sum_e + sum_i;
-    printf("\n\n");
-    printf("\033[120CTotal:\033[31m%19.2lf$\033[0m\033[32m%15.2lf$\033[0m\n", sum_e, sum_i);
-    printf("\033[120CJibim:\033[32m%18.2lf$\033[0m\n", jibim);
-    printf("\n");
-    printf("\033[12ADate             Expense         Income      \n");
-    printf("---------------------------------------------\n");
+    printf("\n\033[89C┌─Total:───────────────────────────────────────┐\n");
+    printf("\033[89C│   \033[31m%15.2lf$\033[0m\033[32m%14.2lf$\033[0m\033[12C│\n", sum_e, sum_i);
+    printf("\033[89C├─Jibim:───────────────────────────────────────┤\n");
+    printf("\033[89C│   \033[32m%15.2lf$\033[0m\033[27C│\n", jibim);
+    printf("\033[89C└──────────────────────────────────────────────┘\n\n");
+    printf("\033[14A┌Date──────────────Expense──────────Income──────┐\n");
     
     today_expenses(d);
     last_seven_day_expense(d);
@@ -502,11 +510,15 @@ int print_summary(Database* d){
     last_six_month_expense(d);
     last_year_expense(d);
     
+    printf("└───────────────────────────────────────────────┘\n\n\n");
+    
     print_chart_expense(d);
     
     print_three_month_most_tags_expense(d);
     print_three_month_most_tags_income(d);
     
+    printf("\033[5k\n");
+
     return 0;
 }
 

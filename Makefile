@@ -1,6 +1,6 @@
 build: src/main.c
 	mkdir -p ./bin
-	gcc -o ./bin/jibim src/main.c -lncurses
+	gcc -o ./bin/jibim src/main.c
 run: build
 	./bin/jibim
 test: src/test.c
